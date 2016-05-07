@@ -1,0 +1,53 @@
+http://unix.stackexchange.com/questions/1437/what-does-libgl-always-indirect-1-actually-do
+
+
+Das hier funktioniert wenn der Nvidia Treiber installiert ist:
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGL.so make check
+
+
+$ readlink -f /usr/lib/x86_64-linux-gnu/libGL.so.1
+/usr/lib/x86_64-linux-gnu/nvidia/legacy-304xx/libGL.so.304.125
+
+$ readlink -f /usr/lib/x86_64-linux-gnu/libGL.so
+/usr/lib/mesa-diverted/x86_64-linux-gnu/libGL.so.1.2.0
+
+./run-octave -q -f --no-gui --eval "sombrero; img=__osmesa_print__(gcf);"
+
+LD_DEBUG=versions ./run-octave -q -f --no-gui --eval "sombrero; img=__osmesa_print__(gcf);" 2>&1 | grep error
+
+lspci: G71GL [Quadro FX 1500]
+
+$ glxinfo | grep version
+server glx version string: 1.4
+client glx version string: 1.4
+GLX version: 1.4
+OpenGL version string: 2.1.2 NVIDIA 304.131
+OpenGL shading language version string: 1.20 NVIDIA via Cg compiler
+OpenGL ES profile version string: OpenGL ES 2.0 NVIDIA 304.131 304.131
+OpenGL ES profile shading language version string: OpenGL ES GLSL ES 1.00
+
+$ dpkg --get-selections | grep nvidia
+glx-alternative-nvidia				install
+libgl1-nvidia-legacy-304xx-glx:amd64		install
+nvidia-detect					install
+nvidia-installer-cleanup			install
+nvidia-kernel-common				install
+nvidia-legacy-304xx-alternative			install
+nvidia-legacy-304xx-driver			install
+nvidia-legacy-304xx-kernel-dkms			install
+nvidia-settings-legacy-304xx			install
+nvidia-support					install
+nvidia-xconfig					install
+xserver-xorg-video-nvidia-legacy-304xx		install
+
+
+$ wget https://mesa.freedesktop.org/archive/11.2.1/mesa-11.2.1.tar.gz
+$ tar xzf mesa-11.2.1.tar.gz
+$ cd mesa-11.2.1
+$ ./autogen.sh --enable-xlib-glx --disable-driglx-direct --disable-dri --enable-gallium-osmesa --with-gallium-drivers=swrast 
+
+
+
+export LD_PROFILE=libGL.so.1
+export LD_PROFILE_OUTPUT=$(pwd)/prof_data
+mkdir -p $LD_PROFILE_OUTPUT
